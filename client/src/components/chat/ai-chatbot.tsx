@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Robot, User, Send, MessageSquare, X } from "lucide-react";
+import { Bot, User, Send, MessageSquare, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -82,7 +82,7 @@ export function AIChatbot() {
       >
         <div className="bg-primary p-4 text-white flex justify-between items-center">
           <h4 className="font-medium flex items-center">
-            <Robot className="mr-2 h-4 w-4" /> AgriConnect Assistant
+            <Bot className="mr-2 h-4 w-4" /> AgriConnect Assistant
           </h4>
           <Button 
             variant="ghost" 
@@ -105,7 +105,7 @@ export function AIChatbot() {
             >
               {message.role === "assistant" && (
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white mr-2 flex-shrink-0">
-                  <Robot className="h-4 w-4" />
+                  <Bot className="h-4 w-4" />
                 </div>
               )}
               
