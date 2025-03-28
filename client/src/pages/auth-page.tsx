@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plant } from "lucide-react";
+import { Loader2, Sprout } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type ViewType = "login" | "register";
@@ -80,7 +80,7 @@ const AuthPage = () => {
           <CardContent className="pt-6">
             <div className="text-center mb-8">
               <h1 className="font-bold text-3xl text-primary flex items-center justify-center">
-                <Plant className="mr-2" /> AgriConnect
+                <Sprout className="mr-2" /> AgriConnect
               </h1>
               <p className="text-neutral-600 mt-2">
                 {isLogin ? "Sign in to your account" : "Create your account"}
@@ -266,7 +266,7 @@ const AuthPage = () => {
                               checked={field.value === "farmer"} 
                               onChange={() => registerForm.setValue("userType", "farmer")}
                             />
-                            <Plant className="mx-auto text-xl text-primary h-6 w-6" />
+                            <Sprout className="mx-auto text-xl text-primary h-6 w-6" />
                             <p className="font-medium mt-1">Farmer</p>
                           </div>
                           

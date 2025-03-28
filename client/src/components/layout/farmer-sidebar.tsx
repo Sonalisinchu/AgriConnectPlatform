@@ -11,7 +11,7 @@ import {
   User,
   Home,
   Menu,
-  Plant,
+  Sprout, // Changed from Plant to Sprout
   X
 } from "lucide-react";
 import { useState } from "react";
@@ -115,7 +115,7 @@ export function FarmerSidebar({ className }: SidebarProps) {
       <SheetContent side="left" className="w-64 p-0">
         <SheetHeader className="p-4 border-b border-neutral-200">
           <SheetTitle className="font-bold text-xl text-primary flex items-center">
-            <Plant className="mr-2 h-5 w-5" /> AgriConnect
+            <Sprout className="mr-2 h-5 w-5" /> AgriConnect
             <SheetClose className="ml-auto">
               <X className="h-4 w-4" />
             </SheetClose>
@@ -150,7 +150,7 @@ export function FarmerSidebar({ className }: SidebarProps) {
       <div className={cn("bg-white shadow-md lg:w-64 lg:fixed lg:h-full hidden lg:block", className)}>
         <div className="p-4 border-b border-neutral-200">
           <h1 className="font-bold text-xl text-primary flex items-center">
-            <Plant className="mr-2 h-5 w-5" /> AgriConnect
+            <Sprout className="mr-2 h-5 w-5" /> AgriConnect
           </h1>
           <p className="text-sm text-neutral-500">Farmer Dashboard</p>
         </div>

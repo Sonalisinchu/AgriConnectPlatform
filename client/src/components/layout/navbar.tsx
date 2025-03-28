@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BellIcon, Search, Menu, Plant } from "lucide-react";
+import { BellIcon, Search, Menu, Sprout } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavbarProps {
