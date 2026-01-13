@@ -24,7 +24,7 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  
+
   const {
     data: user,
     error,
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
-      if (user.userType === "farmer") {
+      if (user.role === "farmer") {
         setLocation("/farmer-dashboard");
       } else {
         setLocation("/buyer-dashboard");
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
-      if (user.userType === "farmer") {
+      if (user.role === "farmer") {
         setLocation("/farmer-dashboard");
       } else {
         setLocation("/buyer-dashboard");
@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
   });
-  
+
   const verifyBuyerMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/verify-buyer");
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({
         title: "Verification successful",
         description: "Your account has been verified",
-        variant: "success"
+        variant: "default",
       });
     },
     onError: (error: Error) => {

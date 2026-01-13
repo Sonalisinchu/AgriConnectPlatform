@@ -7,7 +7,7 @@ export function ProtectedRoute({
   component: Component,
 }: {
   path: string;
-  component: () => React.JSX.Element;
+  component: any;
 }) {
   const { user, isLoading } = useAuth();
 
@@ -30,7 +30,7 @@ export function ProtectedRoute({
   }
 
   // Route based on user type
-  if (user.userType === "farmer" && path === "/buyer-dashboard") {
+  if (user.role === "farmer" && path === "/buyer-dashboard") {
     return (
       <Route path={path}>
         <Redirect to="/farmer-dashboard" />
@@ -38,7 +38,7 @@ export function ProtectedRoute({
     );
   }
 
-  if (user.userType === "buyer" && path === "/farmer-dashboard") {
+  if (user.role === "buyer" && path === "/farmer-dashboard") {
     return (
       <Route path={path}>
         <Redirect to="/buyer-dashboard" />

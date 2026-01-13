@@ -1,9 +1,17 @@
-import { users, crops, orders, type User, type InsertUser, type Crop, type InsertCrop, type Order, type InsertOrder } from "@shared/schema";
+import {
+  users, crops, orders, fpoMembers, cropIntelligence, marketplaceRequirements, messages,
+  type User, type InsertUser,
+  type Crop, type InsertCrop,
+  type Order, type InsertOrder,
+  type Message, type InsertMessage,
+  type MarketplaceRequirement, type InsertRequirement,
+  type CropIntel, type InsertCropIntel
+} from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import connectPg from "connect-pg-simple";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc, and, or, sql } from "drizzle-orm";
 import { Store } from "express-session";
 
 const MemoryStore = createMemoryStore(session);
@@ -16,182 +24,45 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserVerification(id: number, isVerified: boolean): Promise<User | undefined>;
-  
+
   // Crop methods
   getCrop(id: number): Promise<Crop | undefined>;
   getCropsByFarmer(farmerId: number): Promise<Crop[]>;
   getAllCrops(): Promise<Crop[]>;
   createCrop(crop: InsertCrop): Promise<Crop>;
   updateCrop(id: number, crop: Partial<Crop>): Promise<Crop | undefined>;
-  
+
   // Order methods
   getOrder(id: number): Promise<Order | undefined>;
   getOrdersByBuyer(buyerId: number): Promise<Order[]>;
   getOrdersByFarmer(farmerId: number): Promise<Order[]>;
   createOrder(order: InsertOrder): Promise<Order>;
   updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
-  
+
+  // FPO methods
+  addFpoMember(fpoId: number, farmerId: number): Promise<void>;
+  getFpoMembers(fpoId: number): Promise<User[]>;
+
+  // Crop Intelligence
+  getCropIntelligence(cropName: string): Promise<CropIntel | undefined>;
+  getAllCropIntelligence(): Promise<CropIntel[]>;
+  createCropIntelligence(intel: InsertCropIntel): Promise<CropIntel>;
+
+  // Marketplace
+  createRequirement(req: InsertRequirement): Promise<MarketplaceRequirement>;
+  getRequirements(): Promise<MarketplaceRequirement[]>;
+
+  // Messages
+  sendMessage(msg: InsertMessage): Promise<Message>;
+  getMessages(userId1: number, userId2: number): Promise<Message[]>;
+
+  // Dashboard Stats
+  getAdminStats(): Promise<{ totalUsers: number; totalCrops: number; totalOrders: number; totalRevenue: number }>;
+  getRecentUsers(limit: number): Promise<User[]>;
+  getFpoStats(fpoId: number): Promise<{ totalMembers: number; activeCrops: number; totalRevenue: number }>;
+
   // Session store
   sessionStore: Store;
-}
-
-// In-memory storage implementation
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private crops: Map<number, Crop>;
-  private orders: Map<number, Order>;
-  sessionStore: Store;
-  
-  private userId: number;
-  private cropId: number;
-  private orderId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.crops = new Map();
-    this.orders = new Map();
-    this.userId = 1;
-    this.cropId = 1;
-    this.orderId = 1;
-    
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
-    });
-  }
-
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userId++;
-    
-    // Create a properly typed User object
-    const user: User = {
-      id,
-      username: insertUser.username,
-      password: insertUser.password,
-      fullName: insertUser.fullName,
-      email: insertUser.email,
-      phone: insertUser.phone,
-      location: insertUser.location,
-      userType: insertUser.userType,
-      isVerified: false,
-      createdAt: new Date()
-    };
-    
-    this.users.set(id, user);
-    return user;
-  }
-  
-  async updateUserVerification(id: number, isVerified: boolean): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
-    
-    const updatedUser = { ...user, isVerified };
-    this.users.set(id, updatedUser);
-    return updatedUser;
-  }
-
-  // Crop methods
-  async getCrop(id: number): Promise<Crop | undefined> {
-    return this.crops.get(id);
-  }
-
-  async getCropsByFarmer(farmerId: number): Promise<Crop[]> {
-    return Array.from(this.crops.values()).filter(
-      (crop) => crop.farmerId === farmerId,
-    );
-  }
-
-  async getAllCrops(): Promise<Crop[]> {
-    return Array.from(this.crops.values());
-  }
-
-  async createCrop(insertCrop: InsertCrop): Promise<Crop> {
-    const id = this.cropId++;
-    
-    // Create a properly typed Crop object
-    const crop: Crop = {
-      id,
-      name: insertCrop.name,
-      category: insertCrop.category,
-      farmerId: insertCrop.farmerId,
-      currentPrice: insertCrop.currentPrice,
-      quantity: insertCrop.quantity,
-      location: insertCrop.location,
-      isActive: true,
-      createdAt: new Date(),
-      plantedDate: insertCrop.plantedDate || null,
-      harvestDate: insertCrop.harvestDate || null,
-      storageInfo: insertCrop.storageInfo || null,
-      description: insertCrop.description || null
-    };
-    
-    this.crops.set(id, crop);
-    return crop;
-  }
-
-  async updateCrop(id: number, cropData: Partial<Crop>): Promise<Crop | undefined> {
-    const crop = this.crops.get(id);
-    if (!crop) return undefined;
-    
-    const updatedCrop = { ...crop, ...cropData };
-    this.crops.set(id, updatedCrop);
-    return updatedCrop;
-  }
-
-  // Order methods
-  async getOrder(id: number): Promise<Order | undefined> {
-    return this.orders.get(id);
-  }
-
-  async getOrdersByBuyer(buyerId: number): Promise<Order[]> {
-    return Array.from(this.orders.values()).filter(
-      (order) => order.buyerId === buyerId,
-    );
-  }
-
-  async getOrdersByFarmer(farmerId: number): Promise<Order[]> {
-    return Array.from(this.orders.values()).filter(
-      (order) => order.farmerId === farmerId,
-    );
-  }
-
-  async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    const id = this.orderId++;
-    
-    // Create a properly typed Order object
-    const order: Order = {
-      id,
-      buyerId: insertOrder.buyerId,
-      cropId: insertOrder.cropId,
-      farmerId: insertOrder.farmerId,
-      quantity: insertOrder.quantity,
-      totalAmount: insertOrder.totalAmount,
-      status: "pending",
-      createdAt: new Date()
-    };
-    
-    this.orders.set(id, order);
-    return order;
-  }
-
-  async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
-    const order = this.orders.get(id);
-    if (!order) return undefined;
-    
-    const updatedOrder = { ...order, status };
-    this.orders.set(id, updatedOrder);
-    return updatedOrder;
-  }
 }
 
 // Database storage implementation
@@ -226,7 +97,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
-  
+
   async updateUserVerification(id: number, isVerified: boolean): Promise<User | undefined> {
     const [user] = await db.update(users)
       .set({ isVerified })
@@ -250,7 +121,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCrop(insertCrop: InsertCrop): Promise<Crop> {
-    // Handle nullable fields by ensuring they're not undefined
     const cropValues = {
       ...insertCrop,
       isActive: true,
@@ -259,7 +129,7 @@ export class DatabaseStorage implements IStorage {
       storageInfo: insertCrop.storageInfo || null,
       description: insertCrop.description || null
     };
-    
+
     const [crop] = await db.insert(crops)
       .values(cropValues)
       .returning();
@@ -304,6 +174,103 @@ export class DatabaseStorage implements IStorage {
       .where(eq(orders.id, id))
       .returning();
     return order;
+  }
+
+  // FPO Methods
+  async addFpoMember(fpoId: number, farmerId: number): Promise<void> {
+    await db.insert(fpoMembers).values({ fpoId, farmerId });
+  }
+
+  async getFpoMembers(fpoId: number): Promise<User[]> {
+    // Join users and fpoMembers
+    const results = await db.select({ user: users })
+      .from(fpoMembers)
+      .innerJoin(users, eq(users.id, fpoMembers.farmerId))
+      .where(eq(fpoMembers.fpoId, fpoId));
+
+    return results.map((r: { user: User }) => r.user);
+  }
+
+  // Crop Intelligence
+  async getCropIntelligence(cropName: string): Promise<CropIntel | undefined> {
+    const [intel] = await db.select().from(cropIntelligence).where(eq(cropIntelligence.cropName, cropName));
+    return intel;
+  }
+
+  async getAllCropIntelligence(): Promise<CropIntel[]> {
+    return db.select().from(cropIntelligence);
+  }
+
+  async createCropIntelligence(intel: InsertCropIntel): Promise<CropIntel> {
+    const [newIntel] = await db.insert(cropIntelligence).values(intel).returning();
+    return newIntel;
+  }
+
+  // Marketplace
+  async createRequirement(req: InsertRequirement): Promise<MarketplaceRequirement> {
+    const [requirement] = await db.insert(marketplaceRequirements).values(req).returning();
+    return requirement;
+  }
+
+  async getRequirements(): Promise<MarketplaceRequirement[]> {
+    return db.select().from(marketplaceRequirements).where(eq(marketplaceRequirements.isActive, true));
+  }
+
+  // Messages
+  async sendMessage(msg: InsertMessage): Promise<Message> {
+    const [message] = await db.insert(messages).values(msg).returning();
+    return message;
+  }
+
+  async getMessages(userId1: number, userId2: number): Promise<Message[]> {
+    return db.select()
+      .from(messages)
+      .where(
+        or(
+          and(eq(messages.senderId, userId1), eq(messages.receiverId, userId2)),
+          and(eq(messages.senderId, userId2), eq(messages.receiverId, userId1))
+        )
+      )
+      .orderBy(desc(messages.createdAt));
+  }
+  // Dashboard Stats
+  async getAdminStats(): Promise<{ totalUsers: number; totalCrops: number; totalOrders: number; totalRevenue: number }> {
+    const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const [cropCount] = await db.select({ count: sql<number>`count(*)` }).from(crops);
+    const [orderCount] = await db.select({ count: sql<number>`count(*)` }).from(orders);
+    const [revenue] = await db.select({ total: sql<number>`sum(${orders.totalAmount})` }).from(orders);
+
+    return {
+      totalUsers: Number(userCount.count),
+      totalCrops: Number(cropCount.count),
+      totalOrders: Number(orderCount.count),
+      totalRevenue: Number(revenue?.total || 0)
+    };
+  }
+
+  async getRecentUsers(limit: number): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.id)).limit(limit);
+  }
+
+  async getFpoStats(fpoId: number): Promise<{ totalMembers: number; activeCrops: number; totalRevenue: number }> {
+    const [memberCount] = await db.select({ count: sql<number>`count(*)` })
+      .from(fpoMembers)
+      .where(eq(fpoMembers.fpoId, fpoId));
+
+    const members = await this.getFpoMembers(fpoId);
+    const memberIds = members.map(m => m.id);
+
+    let activeCrops = 0;
+    if (memberIds.length > 0) {
+      const allCrops = await this.getAllCrops();
+      activeCrops = allCrops.filter(c => memberIds.includes(c.farmerId)).length;
+    }
+
+    return {
+      totalMembers: Number(memberCount.count),
+      activeCrops: activeCrops,
+      totalRevenue: 0
+    };
   }
 }
 

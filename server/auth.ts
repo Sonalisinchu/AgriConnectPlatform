@@ -9,7 +9,7 @@ import { User as SelectUser } from "@shared/schema";
 
 declare global {
   namespace Express {
-    interface User extends SelectUser {}
+    interface User extends SelectUser { }
   }
 }
 
@@ -75,7 +75,7 @@ export function setupAuth(app: Express) {
       };
 
       const user = await storage.createUser(userData);
-      
+
       // Remove password from response
       const userResponse = {
         ...user,
@@ -92,19 +92,19 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) return next(err);
       if (!user) return res.status(400).json({ message: "Invalid credentials" });
-      
+
       req.login(user, (err) => {
         if (err) return next(err);
-        
+
         // Remove password from response
         const userResponse = {
           ...user,
           password: undefined
         };
-        
+
         res.status(200).json(userResponse);
       });
     })(req, res, next);
@@ -119,34 +119,34 @@ export function setupAuth(app: Express) {
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     // Remove password from response
     const userResponse = {
       ...req.user,
       password: undefined
     };
-    
+
     res.json(userResponse);
   });
-  
+
   // Verify buyer
   app.post("/api/verify-buyer", async (req, res, next) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    if (req.user.userType !== "buyer") return res.status(403).json({ message: "Only buyers can be verified" });
-    
+    if (req.user.role !== "buyer") return res.status(403).json({ message: "Only buyers can be verified" });
+
     try {
       // In a real app, we'd process verification documents here
       const updatedUser = await storage.updateUserVerification(req.user.id, true);
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Remove password from response
       const userResponse = {
         ...updatedUser,
         password: undefined
       };
-      
+
       res.json(userResponse);
     } catch (error) {
       next(error);

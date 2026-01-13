@@ -7,271 +7,303 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Info } from "lucide-react";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Info, Calendar as CalendarIcon, Sprout, Droplets, Thermometer, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
-// Season colors
-const seasonColors = {
-  winter: "bg-green-100",
-  spring: "bg-yellow-100",
-  summer: "bg-orange-100",
-  monsoon: "bg-blue-100",
-  autumn: "bg-amber-100",
-};
+// Month names for the calendar columns
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const vegetablePlanting = [
+interface CropInfo {
+  name: string;
+  category: "Vegetable" | "Fruit" | "Grain";
+  startMonth: number; // 0-indexed
+  endMonth: number; // 0-indexed
+  info: string;
+  bestSoil: string;
+  watering: string;
+  temp: string;
+  harvestTime: string;
+  tips: string[];
+}
+
+const plantingData: CropInfo[] = [
   {
     name: "Tomato",
-    seasons: [
-      { name: "monsoon", months: "Jul - Sep", position: "50%", width: "24%" },
-      { name: "autumn", months: "Oct - Dec", position: "74%", width: "16%" },
-    ],
-    duration: "Jul - Dec (6 months)",
-    info: "Requires well-drained soil, regular watering, and full sun exposure."
+    category: "Vegetable",
+    startMonth: 6, // July
+    endMonth: 11, // December
+    info: "Tomatoes are a versatile crop that requires a lot of sun and regular feeding.",
+    bestSoil: "Loamy, well-drained, pH 6.0-6.8",
+    watering: "High (2-3 times/week)",
+    temp: "21°C - 32°C",
+    harvestTime: "60-80 days",
+    tips: ["Use stakes for support", "Prune side shoots", "Avoid overhead watering"]
   },
   {
     name: "Cabbage",
-    seasons: [
-      { name: "winter", months: "Jan - Feb", position: "0%", width: "16%" },
-      { name: "autumn", months: "Oct - Dec", position: "74%", width: "26%" },
-    ],
-    duration: "Jan - Feb, Oct - Dec (5 months)",
-    info: "Prefers cool weather, needs rich soil and consistent moisture."
-  },
-  {
-    name: "Cucumber",
-    seasons: [
-      { name: "summer", months: "May - Jun", position: "33%", width: "17%" },
-    ],
-    duration: "May - Jun (2 months)",
-    info: "Fast-growing vine that requires warm temperatures and steady moisture."
-  },
-];
-
-const fruitPlanting = [
-  {
-    name: "Mango",
-    seasons: [
-      { name: "spring", months: "Mar - Apr", position: "16%", width: "17%" },
-    ],
-    duration: "Mar - Apr (2 months)",
-    info: "Needs full sun, protection from strong winds, and well-draining soil."
-  },
-  {
-    name: "Strawberry",
-    seasons: [
-      { name: "autumn", months: "Oct - Dec", position: "74%", width: "16%" },
-      { name: "winter", months: "Jan - Feb", position: "0%", width: "16%" },
-    ],
-    duration: "Oct - Feb (5 months)",
-    info: "Prefers cooler temperatures, needs rich soil and regular watering."
-  },
-];
-
-const grainPlanting = [
-  {
-    name: "Rice",
-    seasons: [
-      { name: "monsoon", months: "Jul - Sep", position: "50%", width: "24%" },
-    ],
-    duration: "Jul - Sep (3 months)",
-    info: "Needs standing water during growth, warm temperatures, and full sun."
+    category: "Vegetable",
+    startMonth: 9, // October
+    endMonth: 1, // February
+    info: "Cabbage is a cool-season crop that can handle light frost.",
+    bestSoil: "Heavy clay or loamy, rich in organic matter",
+    watering: "Moderate",
+    temp: "15°C - 20°C",
+    harvestTime: "70-100 days",
+    tips: ["Keep soil consistently moist", "Watch for cabbage worms", "Rotate crops yearly"]
   },
   {
     name: "Wheat",
-    seasons: [
-      { name: "winter", months: "Jan - Feb", position: "0%", width: "16%" },
-      { name: "autumn", months: "Oct - Dec", position: "74%", width: "26%" },
-    ],
-    duration: "Oct - Feb (5 months)",
-    info: "Cold-season crop that requires moderate temperatures and regular watering."
+    category: "Grain",
+    startMonth: 9, // October
+    endMonth: 2, // March
+    info: "Rabi wheat is sown in autumn and harvested in spring.",
+    bestSoil: "Well-drained loamy soil",
+    watering: "Moderate (critical at crown root stage)",
+    temp: "10°C - 25°C",
+    harvestTime: "120-150 days",
+    tips: ["Ensure proper seed depth", "Timely irrigation is key", "Control weeds early"]
   },
+  {
+    name: "Mango",
+    category: "Fruit",
+    startMonth: 2, // March
+    endMonth: 5, // June
+    info: "Mangoes are the king of fruits, thriving in tropical climates.",
+    bestSoil: "Deep, well-drained alluvial soil",
+    watering: "Low (once established)",
+    temp: "24°C - 30°C",
+    harvestTime: "100-150 days from flowering",
+    tips: ["Protect from frost when young", "Prune after harvest", "Monitor for mealy bugs"]
+  },
+  {
+    name: "Rice",
+    category: "Grain",
+    startMonth: 5, // June
+    endMonth: 9, // October
+    info: "Kharif rice requires high humidity and heavy rainfall/irrigation.",
+    bestSoil: "Clay or clayey loam, retains water",
+    watering: "Very High (standing water)",
+    temp: "20°C - 37°C",
+    harvestTime: "110-150 days",
+    tips: ["Land should be leveled", "Use nursery for seedlings", "Manage nitrogen levels"]
+  }
 ];
 
-interface PlantingCalendarProps {
-  className?: string;
-}
-
-export function PlantingCalendar({ className }: PlantingCalendarProps) {
+export function PlantingCalendar({ className }: { className?: string }) {
   const [region, setRegion] = useState("Western Maharashtra");
-  
+  const [selectedCrop, setSelectedCrop] = useState<CropInfo | null>(null);
+
+  const getMonthSpan = (start: number, end: number) => {
+    if (start <= end) {
+      return { start, span: end - start + 1 };
+    } else {
+      // Over-year span (e.g., Oct to Feb)
+      return { start, span: 12 - start + end + 1 };
+    }
+  };
+
+  const renderCropBar = (crop: CropInfo) => {
+    const { start, span } = getMonthSpan(crop.startMonth, crop.endMonth);
+    const colorClass =
+      crop.category === "Vegetable" ? "bg-emerald-500" :
+        crop.category === "Fruit" ? "bg-orange-500" : "bg-amber-600";
+
+    // If it spans across the year (e.g., Oct to Feb), we need two parts or 
+    // we can use a simpler approach for visual representation.
+    // Let's handle the wraparound visually.
+    const parts = [];
+    if (crop.startMonth <= crop.endMonth) {
+      parts.push({ start: crop.startMonth, span: crop.endMonth - crop.startMonth + 1 });
+    } else {
+      parts.push({ start: crop.startMonth, span: 12 - crop.startMonth });
+      parts.push({ start: 0, span: crop.endMonth + 1 });
+    }
+
+    return (
+      <div key={crop.name} className="relative h-14 w-full flex items-center border-b border-neutral-100 last:border-0 group">
+        <div className="w-32 flex-shrink-0 font-medium text-sm text-neutral-700 pr-2">
+          {crop.name}
+        </div>
+        <div className="flex-1 h-full relative grid grid-cols-12 gap-0">
+          {/* Calendar Grid Lines */}
+          {months.map((_, i) => (
+            <div key={i} className="border-l border-neutral-100 h-full first:border-l-0"></div>
+          ))}
+
+          {/* Crop Activity Bar */}
+          {parts.map((part, i) => (
+            <div
+              key={i}
+              className={cn(
+                "absolute h-6 rounded-full top-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-[1.02] flex items-center justify-center text-[10px] text-white font-bold px-2 shadow-sm",
+                colorClass
+              )}
+              style={{
+                left: `${(part.start / 12) * 100}%`,
+                width: `${(part.span / 12) * 100}%`,
+              }}
+              onClick={() => setSelectedCrop(crop)}
+            >
+              <span className="truncate">{crop.name}</span>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => setSelectedCrop(crop)}
+          className="ml-2 p-1 text-neutral-400 hover:text-primary transition-colors"
+        >
+          <Info className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <section id="planting-calendar" className={cn("mb-10", className)}>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="font-bold text-2xl">Planting Calendar</h3>
-        <div className="flex items-center">
-          <span className="text-sm text-neutral-500 mr-3">Region:</span>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h3 className="font-bold text-2xl text-neutral-800">Agricultural Planting Calendar</h3>
+          <p className="text-neutral-500 text-sm">Optimal sowing and harvest periods for your region</p>
+        </div>
+        <div className="flex items-center bg-white p-1 rounded-lg border border-neutral-200">
+          <span className="text-xs font-semibold text-neutral-500 px-3 uppercase tracking-wider">Region</span>
           <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-[180px] border-none shadow-none focus:ring-0">
               <SelectValue placeholder="Select region" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Western Maharashtra">Western Maharashtra</SelectItem>
-              <SelectItem value="Coastal Maharashtra">Coastal Maharashtra</SelectItem>
               <SelectItem value="Vidarbha">Vidarbha</SelectItem>
               <SelectItem value="Karnataka">Karnataka</SelectItem>
+              <SelectItem value="Punjab">Punjab</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
-      
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex mb-8 text-center text-sm font-medium">
-            <div className="flex-1">
-              <div className="p-2 bg-green-100 text-primary rounded-t-lg">Winter</div>
-              <div className="p-1 text-xs text-neutral-500">Jan - Feb</div>
+
+      <Card className="overflow-hidden border-neutral-200 shadow-md">
+        <CardContent className="p-0">
+          {/* Calendar Header */}
+          <div className="bg-neutral-50 border-b border-neutral-200 flex py-3">
+            <div className="w-32 flex-shrink-0"></div>
+            <div className="flex-1 grid grid-cols-12">
+              {months.map((m) => (
+                <div key={m} className="text-center">
+                  <span className="text-xs font-bold text-neutral-600 uppercase">{m}</span>
+                </div>
+              ))}
             </div>
-            <div className="flex-1">
-              <div className="p-2 bg-yellow-100 text-yellow-800 rounded-t-lg">Spring</div>
-              <div className="p-1 text-xs text-neutral-500">Mar - Apr</div>
-            </div>
-            <div className="flex-1">
-              <div className="p-2 bg-orange-100 text-orange-800 rounded-t-lg">Summer</div>
-              <div className="p-1 text-xs text-neutral-500">May - Jun</div>
-            </div>
-            <div className="flex-1">
-              <div className="p-2 bg-blue-100 text-blue-800 rounded-t-lg">Monsoon</div>
-              <div className="p-1 text-xs text-neutral-500">Jul - Sep</div>
-            </div>
-            <div className="flex-1">
-              <div className="p-2 bg-amber-100 text-amber-800 rounded-t-lg">Autumn</div>
-              <div className="p-1 text-xs text-neutral-500">Oct - Dec</div>
-            </div>
+            <div className="w-8"></div>
           </div>
-          
-          <div className="space-y-6">
-            {/* Vegetables */}
-            <div>
-              <h4 className="font-semibold text-lg mb-3">Vegetables</h4>
-              <div className="space-y-4">
-                {vegetablePlanting.map((veg) => (
-                  <div key={veg.name} className="relative h-12 border border-neutral-200 rounded-lg">
-                    <div className="absolute top-0 left-0 bottom-0 flex items-center pl-4 font-medium">
-                      {veg.name}
-                    </div>
-                    
-                    {veg.seasons.map((season, index) => (
-                      <div 
-                        key={index}
-                        className={`absolute top-0 h-1 ${seasonColors[season.name as keyof typeof seasonColors]}`} 
-                        style={{ left: season.position, width: season.width }}
-                      ></div>
-                    ))}
-                    
-                    <div className="absolute left-1/2 top-0 bottom-0 flex items-center justify-center w-full text-xs">
-                      <span className="bg-white px-2">{veg.duration}</span>
-                    </div>
-                    
-                    <div className="absolute right-4 top-0 bottom-0 flex items-center">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="text-primary hover:text-primary-dark">
-                              <Info className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{veg.info}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </div>
-                ))}
+
+          {/* Calendar Body */}
+          <div className="p-4 bg-white">
+            <div className="mb-8">
+              <div className="flex items-center gap-4 mb-4">
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                  <Sprout className="h-3 w-3 mr-1" /> Vegetables
+                </Badge>
+                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                  <Sprout className="h-3 w-3 mr-1" /> Fruits
+                </Badge>
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                  <Sprout className="h-3 w-3 mr-1" /> Grains
+                </Badge>
               </div>
-            </div>
-            
-            {/* Fruits */}
-            <div>
-              <h4 className="font-semibold text-lg mb-3">Fruits</h4>
-              <div className="space-y-4">
-                {fruitPlanting.map((fruit) => (
-                  <div key={fruit.name} className="relative h-12 border border-neutral-200 rounded-lg">
-                    <div className="absolute top-0 left-0 bottom-0 flex items-center pl-4 font-medium">
-                      {fruit.name}
-                    </div>
-                    
-                    {fruit.seasons.map((season, index) => (
-                      <div 
-                        key={index}
-                        className={`absolute top-0 h-1 ${seasonColors[season.name as keyof typeof seasonColors]}`} 
-                        style={{ left: season.position, width: season.width }}
-                      ></div>
-                    ))}
-                    
-                    <div className="absolute left-1/2 top-0 bottom-0 flex items-center justify-center w-full text-xs">
-                      <span className="bg-white px-2">{fruit.duration}</span>
-                    </div>
-                    
-                    <div className="absolute right-4 top-0 bottom-0 flex items-center">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="text-primary hover:text-primary-dark">
-                              <Info className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{fruit.info}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Grains */}
-            <div>
-              <h4 className="font-semibold text-lg mb-3">Grains</h4>
-              <div className="space-y-4">
-                {grainPlanting.map((grain) => (
-                  <div key={grain.name} className="relative h-12 border border-neutral-200 rounded-lg">
-                    <div className="absolute top-0 left-0 bottom-0 flex items-center pl-4 font-medium">
-                      {grain.name}
-                    </div>
-                    
-                    {grain.seasons.map((season, index) => (
-                      <div 
-                        key={index}
-                        className={`absolute top-0 h-1 ${seasonColors[season.name as keyof typeof seasonColors]}`} 
-                        style={{ left: season.position, width: season.width }}
-                      ></div>
-                    ))}
-                    
-                    <div className="absolute left-1/2 top-0 bottom-0 flex items-center justify-center w-full text-xs">
-                      <span className="bg-white px-2">{grain.duration}</span>
-                    </div>
-                    
-                    <div className="absolute right-4 top-0 bottom-0 flex items-center">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="text-primary hover:text-primary-dark">
-                              <Info className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{grain.info}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </div>
-                ))}
+
+              <div className="border border-neutral-100 rounded-xl px-4 py-2">
+                {plantingData.map((crop) => renderCropBar(crop))}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Crop Info Dialog */}
+      <Dialog open={!!selectedCrop} onOpenChange={(open) => !open && setSelectedCrop(null)}>
+        <DialogContent className="max-w-2xl bg-white border-0 shadow-2xl overflow-hidden p-0">
+          {selectedCrop && (
+            <>
+              <div className={cn(
+                "h-32 p-8 flex items-end relative overflow-hidden",
+                selectedCrop.category === "Vegetable" ? "bg-emerald-600" :
+                  selectedCrop.category === "Fruit" ? "bg-orange-500" : "bg-amber-600"
+              )}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Sprout className="h-40 w-40 rotate-12" />
+                </div>
+                <div className="relative z-10">
+                  <Badge className="mb-2 bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-sm">
+                    {selectedCrop.category}
+                  </Badge>
+                  <DialogTitle className="text-4xl font-bold text-white uppercase tracking-tight">
+                    {selectedCrop.name}
+                  </DialogTitle>
+                </div>
+              </div>
+
+              <div className="p-8">
+                <DialogDescription className="text-neutral-600 text-lg leading-relaxed mb-8">
+                  {selectedCrop.info}
+                </DialogDescription>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center text-primary font-bold text-xs uppercase tracking-wider">
+                      <Thermometer className="h-4 w-4 mr-2" /> Temperature
+                    </div>
+                    <span className="text-neutral-800 font-medium">{selectedCrop.temp}</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center text-primary font-bold text-xs uppercase tracking-wider">
+                      <Droplets className="h-4 w-4 mr-2" /> Watering
+                    </div>
+                    <span className="text-neutral-800 font-medium">{selectedCrop.watering}</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center text-primary font-bold text-xs uppercase tracking-wider">
+                      <Clock className="h-4 w-4 mr-2" /> Harvest
+                    </div>
+                    <span className="text-neutral-800 font-medium">{selectedCrop.harvestTime}</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center text-primary font-bold text-xs uppercase tracking-wider">
+                      <CalendarIcon className="h-4 w-4 mr-2" /> Months
+                    </div>
+                    <span className="text-neutral-800 font-medium">
+                      {months[selectedCrop.startMonth]} - {months[selectedCrop.endMonth]}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-neutral-50 rounded-2xl p-6 border border-neutral-100">
+                  <h4 className="font-bold text-neutral-800 mb-4 flex items-center">
+                    <Info className="h-5 w-5 mr-2 text-primary" /> Expert Growing Tips
+                  </h4>
+                  <ul className="space-y-3">
+                    {selectedCrop.tips.map((tip, i) => (
+                      <li key={i} className="flex items-start">
+                        <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 mr-3">
+                          <div className="h-2 w-2 rounded-full bg-primary" />
+                        </div>
+                        <span className="text-neutral-700 text-sm">{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

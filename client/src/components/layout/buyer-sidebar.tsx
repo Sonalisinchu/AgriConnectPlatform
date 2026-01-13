@@ -5,17 +5,20 @@ import { Button } from "@/components/ui/button";
 import {
   Store,
   ShoppingCart,
+  BarChart3,
   LogOut,
   Users,
   User,
   Shield,
   Home,
   Menu,
-  Sprout, // Changed from Plant to Sprout
-  X
+  Sprout,
+  X,
+  Send,
+  ShoppingBag
 } from "lucide-react";
 import { useState } from "react";
-import { 
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -32,11 +35,11 @@ export function BuyerSidebar({ className }: SidebarProps) {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-  
+
   const navItems = [
     {
       title: "Dashboard",
@@ -59,6 +62,21 @@ export function BuyerSidebar({ className }: SidebarProps) {
       href: "/buyer-dashboard#farmer-connections",
     },
     {
+      title: "Messages",
+      icon: <Send className="mr-3 h-5 w-5" />,
+      href: "/messages",
+    },
+    {
+      title: "Marketplace",
+      icon: <ShoppingBag className="mr-3 h-5 w-5" />,
+      href: "/marketplace",
+    },
+    {
+      title: "Price Trends",
+      icon: <BarChart3 className="mr-3 h-5 w-5" />,
+      href: "/analytics",
+    },
+    {
       title: "Verification Status",
       icon: <Shield className="mr-3 h-5 w-5" />,
       href: "/buyer-dashboard#verification",
@@ -69,7 +87,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
       href: "/buyer-dashboard#profile",
     }
   ];
-  
+
   const renderNavItems = () => (
     <ul className="space-y-1">
       {navItems.map((item) => (
@@ -79,7 +97,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
               className={cn(
                 "flex items-center px-4 py-3 text-neutral-700 hover:bg-neutral-100 rounded-lg mb-1",
                 location === item.href ||
-                (item.href !== "/buyer-dashboard" && location.includes(item.href))
+                  (item.href !== "/buyer-dashboard" && location.includes(item.href))
                   ? "bg-primary text-white hover:bg-primary-dark"
                   : ""
               )}
@@ -103,7 +121,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
       </li>
     </ul>
   );
-  
+
   // Mobile menu
   const mobileMenu = (
     <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -122,7 +140,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
           </SheetTitle>
           <p className="text-sm text-neutral-500">Buyer Dashboard</p>
         </SheetHeader>
-        
+
         <div className="p-4 border-b border-neutral-200">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white">
@@ -134,19 +152,19 @@ export function BuyerSidebar({ className }: SidebarProps) {
             </div>
           </div>
         </div>
-        
+
         <nav className="p-2">
           {renderNavItems()}
         </nav>
       </SheetContent>
     </Sheet>
   );
-  
+
   // Desktop sidebar
   return (
     <>
       {mobileMenu}
-      
+
       <div className={cn("bg-white shadow-md lg:w-64 lg:fixed lg:h-full hidden lg:block", className)}>
         <div className="p-4 border-b border-neutral-200">
           <h1 className="font-bold text-xl text-primary flex items-center">
@@ -154,7 +172,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
           </h1>
           <p className="text-sm text-neutral-500">Buyer Dashboard</p>
         </div>
-        
+
         <div className="p-4 border-b border-neutral-200">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white">
@@ -166,7 +184,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
             </div>
           </div>
         </div>
-        
+
         <nav className="p-2">
           {renderNavItems()}
         </nav>

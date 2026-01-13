@@ -28,9 +28,9 @@ type ViewType = "login" | "register";
 const AuthPage = () => {
   const [view, setView] = useState<ViewType>("login");
   const { user, loginMutation, registerMutation } = useAuth();
-  
+
   const isLogin = view === "login";
-  
+
   // Form definition for login
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -39,7 +39,7 @@ const AuthPage = () => {
       password: "",
     },
   });
-  
+
   // Form definition for registration
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -51,27 +51,27 @@ const AuthPage = () => {
       email: "",
       phone: "",
       location: "",
-      userType: "farmer", // default to farmer
+      role: "farmer", // default to farmer
     },
   });
-  
+
   // Handle login submission
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
     loginMutation.mutate(values);
   };
-  
+
   // Handle registration submission
   const onRegisterSubmit = (values: z.infer<typeof registerSchema>) => {
     // Remove confirmPassword as it's not in the InsertUser type
     const { confirmPassword, ...userData } = values;
     registerMutation.mutate(userData as InsertUser);
   };
-  
+
   // Redirect if already logged in
   if (user) {
-    return <Redirect to={user.userType === "farmer" ? "/farmer-dashboard" : "/buyer-dashboard"} />;
+    return <Redirect to={user.role === "farmer" ? "/farmer-dashboard" : "/buyer-dashboard"} />;
   }
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-100">
       <div className="container grid lg:grid-cols-2 gap-6 px-4 max-w-6xl">
@@ -86,7 +86,7 @@ const AuthPage = () => {
                 {isLogin ? "Sign in to your account" : "Create your account"}
               </p>
             </div>
-            
+
             {isLogin ? (
               // Login Form
               <Form {...loginForm}>
@@ -104,7 +104,7 @@ const AuthPage = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={loginForm.control}
                     name="password"
@@ -118,11 +118,11 @@ const AuthPage = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="mb-6">
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
+                    <Button
+                      type="submit"
+                      className="w-full"
                       disabled={loginMutation.isPending}
                     >
                       {loginMutation.isPending ? (
@@ -154,7 +154,7 @@ const AuthPage = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={registerForm.control}
@@ -169,7 +169,7 @@ const AuthPage = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={registerForm.control}
                       name="phone"
@@ -184,7 +184,7 @@ const AuthPage = () => {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={registerForm.control}
                     name="location"
@@ -198,7 +198,7 @@ const AuthPage = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={registerForm.control}
                     name="username"
@@ -212,7 +212,7 @@ const AuthPage = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={registerForm.control}
@@ -227,7 +227,7 @@ const AuthPage = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={registerForm.control}
                       name="confirmPassword"
@@ -242,63 +242,83 @@ const AuthPage = () => {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={registerForm.control}
-                    name="userType"
+                    name="role"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>I am signing up as:</FormLabel>
-                        <div className="grid grid-cols-2 gap-4 mt-2">
-                          <div 
+                        <div className="grid grid-cols-3 gap-4 mt-2">
+                          <div
                             className={cn(
                               "border rounded-lg p-4 cursor-pointer hover:border-primary transition-colors text-center",
                               field.value === "farmer" ? "border-primary bg-primary/5" : "border-neutral-300"
                             )}
-                            onClick={() => registerForm.setValue("userType", "farmer")}
+                            onClick={() => registerForm.setValue("role", "farmer")}
                           >
-                            <input 
-                              type="radio" 
-                              id="user-type-farmer" 
-                              name="userType" 
-                              value="farmer" 
-                              className="sr-only" 
-                              checked={field.value === "farmer"} 
-                              onChange={() => registerForm.setValue("userType", "farmer")}
+                            <input
+                              type="radio"
+                              id="role-farmer"
+                              name="role"
+                              value="farmer"
+                              className="sr-only"
+                              checked={field.value === "farmer"}
+                              onChange={() => registerForm.setValue("role", "farmer")}
                             />
                             <Sprout className="mx-auto text-xl text-primary h-6 w-6" />
                             <p className="font-medium mt-1">Farmer</p>
                           </div>
-                          
-                          <div 
+
+                          <div
                             className={cn(
                               "border rounded-lg p-4 cursor-pointer hover:border-primary transition-colors text-center",
                               field.value === "buyer" ? "border-primary bg-primary/5" : "border-neutral-300"
                             )}
-                            onClick={() => registerForm.setValue("userType", "buyer")}
+                            onClick={() => registerForm.setValue("role", "buyer")}
                           >
-                            <input 
-                              type="radio" 
-                              id="user-type-buyer" 
-                              name="userType" 
-                              value="buyer" 
-                              className="sr-only" 
-                              checked={field.value === "buyer"} 
-                              onChange={() => registerForm.setValue("userType", "buyer")}
+                            <input
+                              type="radio"
+                              id="role-buyer"
+                              name="role"
+                              value="buyer"
+                              className="sr-only"
+                              checked={field.value === "buyer"}
+                              onChange={() => registerForm.setValue("role", "buyer")}
                             />
-                            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto text-xl text-primary h-6 w-6" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto text-xl text-primary h-6 w-6" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></svg>
                             <p className="font-medium mt-1">Buyer</p>
+                          </div>
+
+                          <div
+                            className={cn(
+                              "border rounded-lg p-4 cursor-pointer hover:border-primary transition-colors text-center",
+                              field.value === "fpo" ? "border-primary bg-primary/5" : "border-neutral-300"
+                            )}
+                            onClick={() => registerForm.setValue("role", "fpo")}
+                          >
+                            <input
+                              type="radio"
+                              id="role-fpo"
+                              name="role"
+                              value="fpo"
+                              className="sr-only"
+                              checked={field.value === "fpo"}
+                              onChange={() => registerForm.setValue("role", "fpo")}
+                            />
+                            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto text-xl text-primary h-6 w-6" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            <p className="font-medium mt-1">FPO</p>
                           </div>
                         </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="mb-6">
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
+                    <Button
+                      type="submit"
+                      className="w-full"
                       disabled={registerMutation.isPending}
                     >
                       {registerMutation.isPending ? (
@@ -314,14 +334,14 @@ const AuthPage = () => {
                 </form>
               </Form>
             )}
-            
+
             <div className="text-center mt-6">
               {isLogin ? (
                 <p className="text-neutral-600">
                   Don't have an account?{" "}
-                  <Button 
-                    variant="link" 
-                    className="text-primary font-semibold p-0" 
+                  <Button
+                    variant="link"
+                    className="text-primary font-semibold p-0"
                     onClick={() => setView("register")}
                   >
                     Sign Up
@@ -330,9 +350,9 @@ const AuthPage = () => {
               ) : (
                 <p className="text-neutral-600">
                   Already have an account?{" "}
-                  <Button 
-                    variant="link" 
-                    className="text-primary font-semibold p-0" 
+                  <Button
+                    variant="link"
+                    className="text-primary font-semibold p-0"
                     onClick={() => setView("login")}
                   >
                     Sign In
@@ -342,7 +362,7 @@ const AuthPage = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         {/* Right column - Hero section */}
         <div className="hidden lg:block bg-primary rounded-lg shadow-lg overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary/70"></div>
@@ -353,41 +373,41 @@ const AuthPage = () => {
             <p className="text-white/90 text-lg mb-8">
               The complete marketplace connecting farmers directly with buyers.
             </p>
-            
+
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="bg-white/10 p-2 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V7H2Z"/><path d="M6 11V8h12v3"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V7H2Z" /><path d="M6 11V8h12v3" /></svg>
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-lg">Market Trend Analysis</h3>
                   <p className="text-white/80">Stay informed with current and predicted crop prices</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start">
                 <div className="bg-white/10 p-2 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" /><path d="M8 14h.01" /><path d="M12 14h.01" /><path d="M16 14h.01" /><path d="M8 18h.01" /><path d="M12 18h.01" /><path d="M16 18h.01" /></svg>
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-lg">Planting Calendar</h3>
                   <p className="text-white/80">Know the best time to plant and harvest your crops</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start">
                 <div className="bg-white/10 p-2 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.29 7 12 12 20.71 7" /><line x1="12" x2="12" y1="22" y2="12" /></svg>
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-lg">Verified Connections</h3>
                   <p className="text-white/80">Connect directly with verified farmers and buyers</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start">
                 <div className="bg-white/10 p-2 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2Z"/><path d="M21.18 8.02A10 10 0 1 0 8.02 21.18L21.18 8.02Z"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2Z" /><path d="M21.18 8.02A10 10 0 1 0 8.02 21.18L21.18 8.02Z" /></svg>
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-lg">AI Assistant</h3>

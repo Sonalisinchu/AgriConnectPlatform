@@ -12,14 +12,14 @@ interface RecentOrdersProps {
 
 export function RecentOrders({ className }: RecentOrdersProps) {
   const { user } = useAuth();
-  
+
   // Fetch orders based on user type
   const { data: orders, isLoading } = useQuery<Order[]>({
-    queryKey: [user?.userType === "buyer" ? "/api/orders/buyer" : "/api/orders/farmer"],
+    queryKey: [user?.role === "buyer" ? "/api/orders/buyer" : "/api/orders/farmer"],
     enabled: !!user,
   });
-  
-  const getStatusVariant = (status: string) => {
+
+  const getStatusVariant = (status: string): "success" | "warning" | "info" | "secondary" => {
     switch (status) {
       case "delivered":
         return "success";
@@ -33,11 +33,12 @@ export function RecentOrders({ className }: RecentOrdersProps) {
         return "secondary";
     }
   };
-  
-  const formatDate = (date: Date) => {
+
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return "N/A";
     return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
-  
+
   // Format price from paisa to rupees
   const formatPrice = (paisa: number) => {
     return (paisa / 100).toLocaleString("en-IN", {
@@ -47,19 +48,19 @@ export function RecentOrders({ className }: RecentOrdersProps) {
       maximumFractionDigits: 0,
     });
   };
-  
+
   // Format quantity from grams to kg
   const formatQuantity = (grams: number) => {
     const kg = grams / 1000;
-    return kg >= 1000 
-      ? `${(kg / 1000).toFixed(2)} tons` 
+    return kg >= 1000
+      ? `${(kg / 1000).toFixed(2)} tons`
       : `${kg.toFixed(0)} kg`;
   };
-  
+
   return (
     <section id="orders" className={className}>
       <h3 className="font-bold text-2xl mb-6">Recent Orders</h3>
-      
+
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="p-8 flex flex-col items-center justify-center">
@@ -69,7 +70,7 @@ export function RecentOrders({ className }: RecentOrdersProps) {
         ) : !orders || orders.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-neutral-600 mb-4">No orders found</p>
-            {user?.userType === "buyer" && (
+            {user?.role === "buyer" && (
               <Button>Browse Available Crops</Button>
             )}
           </div>
@@ -82,7 +83,7 @@ export function RecentOrders({ className }: RecentOrdersProps) {
                     <th className="py-3 px-4 text-left text-sm font-semibold text-neutral-600">Order ID</th>
                     <th className="py-3 px-4 text-left text-sm font-semibold text-neutral-600">Crop</th>
                     <th className="py-3 px-4 text-left text-sm font-semibold text-neutral-600">
-                      {user?.userType === "buyer" ? "Farmer" : "Buyer"}
+                      {user?.role === "buyer" ? "Farmer" : "Buyer"}
                     </th>
                     <th className="py-3 px-4 text-left text-sm font-semibold text-neutral-600">Quantity</th>
                     <th className="py-3 px-4 text-left text-sm font-semibold text-neutral-600">Amount</th>
@@ -97,7 +98,7 @@ export function RecentOrders({ className }: RecentOrdersProps) {
                       <td className="py-3 px-4 text-sm">#{order.id.toString().padStart(4, '0')}</td>
                       <td className="py-3 px-4 text-sm">Crop #{order.cropId}</td>
                       <td className="py-3 px-4 text-sm">
-                        {user?.userType === "buyer" 
+                        {user?.role === "buyer"
                           ? `Farmer #${order.farmerId}`
                           : `Buyer #${order.buyerId}`}
                       </td>
@@ -110,8 +111,8 @@ export function RecentOrders({ className }: RecentOrdersProps) {
                       </td>
                       <td className="py-3 px-4 text-sm">{formatDate(order.createdAt)}</td>
                       <td className="py-3 px-4 text-sm">
-                        <Button 
-                          variant="link" 
+                        <Button
+                          variant="link"
                           className="h-auto p-0 text-primary hover:text-primary-dark"
                         >
                           {order.status === "in_transit" ? "Track Order" : "View Details"}
@@ -122,7 +123,7 @@ export function RecentOrders({ className }: RecentOrdersProps) {
                 </tbody>
               </table>
             </div>
-            
+
             <div className="p-4 border-t border-neutral-200 text-center">
               <Button variant="link" className="text-primary hover:text-primary-dark font-medium">
                 View All Orders

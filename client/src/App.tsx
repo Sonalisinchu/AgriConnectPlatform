@@ -7,9 +7,16 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import FarmerDashboard from "@/pages/farmer-dashboard";
 import BuyerDashboard from "@/pages/buyer-dashboard";
+import FPODashboard from "@/pages/fpo-dashboard";
+import AdminDashboard from "@/pages/admin-dashboard";
+import MarketplacePage from "@/pages/marketplace";
+import MessagesPage from "@/pages/messages-page"; // Import MessagesPage
+import AnalyticsPage from "@/pages/analytics"; // Import AnalyticsPage
+import CropIntelligencePage from "@/pages/crop-intelligence";
+import AIAssistant from "@/components/ai-assistant"; // Import AIAssistant
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
-import { AIChatbot } from "./components/chat/ai-chatbot";
+// AIChatbot import removed
 
 function Router() {
   return (
@@ -17,6 +24,12 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/farmer-dashboard" component={FarmerDashboard} />
       <ProtectedRoute path="/buyer-dashboard" component={BuyerDashboard} />
+      <ProtectedRoute path="/fpo-dashboard" component={FPODashboard} />
+      <ProtectedRoute path="/admin-dashboard" component={AdminDashboard} />
+      <ProtectedRoute path="/messages" component={MessagesPage} />
+      <ProtectedRoute path="/marketplace" component={MarketplacePage} />
+      <ProtectedRoute path="/analytics" component={AnalyticsPage} />
+      <ProtectedRoute path="/crop-intelligence" component={CropIntelligencePage} />
       <Route path="/">
         {() => {
           window.location.href = "/auth";
@@ -91,7 +104,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <Router />
-          <AIChatbot />
+          <AIAssistant />
           <Toaster />
         </AuthProvider>
       </QueryClientProvider>

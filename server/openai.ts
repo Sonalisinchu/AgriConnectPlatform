@@ -13,7 +13,7 @@ export async function getAIResponse(message: string): Promise<string> {
     4. General agricultural knowledge
     
     Keep responses concise, practical and focused on helping farmers and buyers in the agricultural marketplace.`;
-    
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -22,7 +22,7 @@ export async function getAIResponse(message: string): Promise<string> {
       ],
       max_tokens: 500,
     });
-    
+
     return response.choices[0].message.content || "I'm sorry, I couldn't process your request.";
   } catch (error) {
     console.error("Error calling OpenAI:", error);
@@ -46,7 +46,7 @@ export async function getPricePrediction(cropName: string, region: string): Prom
       "thirtyDayForecast": [price in 30 days in rupees per kg],
       "trend": [one of: "rising", "falling", "stable"]
     }`;
-    
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -54,9 +54,10 @@ export async function getPricePrediction(cropName: string, region: string): Prom
       ],
       response_format: { type: "json_object" },
     });
-    
-    const result = JSON.parse(response.choices[0].message.content);
-    
+
+    const content = response.choices[0].message.content || "{}";
+    const result = JSON.parse(content);
+
     return {
       currentPrice: result.currentPrice,
       fifteenDayForecast: result.fifteenDayForecast,
@@ -65,7 +66,7 @@ export async function getPricePrediction(cropName: string, region: string): Prom
     };
   } catch (error) {
     console.error("Error getting price prediction:", error);
-    
+
     // Return fallback mock data in case of error
     return {
       currentPrice: 50,

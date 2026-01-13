@@ -64,13 +64,13 @@ const FarmerDashboard = () => {
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [addCropModalOpen, setAddCropModalOpen] = useState(false);
-  
+
   // Fetch crops for the logged-in farmer
   const { data: crops, isLoading } = useQuery<Crop[]>({
-    queryKey: ["/api/crops/farmer", user?.id],
+    queryKey: [`/api/crops/farmer/${user?.id}`],
     enabled: !!user?.id,
   });
-  
+
   // Form for adding a new crop
   const form = useForm<CropFormValues>({
     resolver: zodResolver(cropFormSchema),
@@ -86,7 +86,7 @@ const FarmerDashboard = () => {
       description: "",
     },
   });
-  
+
   // Mutation for adding a new crop
   const addCropMutation = useMutation({
     mutationFn: async (crop: InsertCrop) => {
@@ -110,10 +110,10 @@ const FarmerDashboard = () => {
       });
     },
   });
-  
+
   const onSubmitAddCrop = (data: CropFormValues) => {
     if (!user) return;
-    
+
     // Convert price from rupees to paisa and quantity from kg to grams
     const cropData: InsertCrop = {
       ...data,
@@ -123,15 +123,15 @@ const FarmerDashboard = () => {
       plantedDate: new Date(data.plantedDate),
       harvestDate: new Date(data.harvestDate),
     };
-    
+
     addCropMutation.mutate(cropData);
   };
-  
+
   const handleViewDetails = (crop: Crop) => {
     setSelectedCrop(crop);
     setDetailsModalOpen(true);
   };
-  
+
   const handleListForSale = (crop: Crop) => {
     // In a real app, this would update the crop to make it available for sale
     toast({
@@ -139,25 +139,25 @@ const FarmerDashboard = () => {
       description: `${crop.name} is now available for buyers to purchase.`,
     });
   };
-  
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-neutral-100">
       <FarmerSidebar />
-      
+
       {/* Main Content */}
       <div className="flex-1 lg:ml-64 min-h-screen">
         <Navbar
           title="Farmer Dashboard"
           onToggleSidebar={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
-        
+
         <div className="p-6">
           {/* Market Trends Section */}
           <MarketTrends />
-          
+
           {/* Planting Calendar Section */}
           <PlantingCalendar />
-          
+
           {/* My Crops Section */}
           <section id="my-crops" className="mb-10">
             <div className="flex justify-between items-center mb-6">
@@ -166,7 +166,7 @@ const FarmerDashboard = () => {
                 <Plus className="mr-2 h-4 w-4" /> Add New Crop
               </Button>
             </div>
-            
+
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
@@ -200,33 +200,33 @@ const FarmerDashboard = () => {
                 ))}
               </div>
             )}
-            
+
             {crops && crops.length > 0 && (
               <div className="mt-6 text-center">
                 <Button variant="link" className="text-primary hover:text-primary-dark font-medium mx-auto">
                   <span>View All Crops</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="ml-2 h-4 w-4" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="ml-2 h-4 w-4" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                 </Button>
               </div>
             )}
           </section>
         </div>
       </div>
-      
+
       {/* Crop Details Modal */}
       <CropDetailsModal
         isOpen={detailsModalOpen}
         crop={selectedCrop}
         onClose={() => setDetailsModalOpen(false)}
       />
-      
+
       {/* Add Crop Modal */}
       <Dialog open={addCropModalOpen} onOpenChange={setAddCropModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Add New Crop</DialogTitle>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmitAddCrop)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,15 +243,15 @@ const FarmerDashboard = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="category"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+                      <Select
+                        onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -271,7 +271,7 @@ const FarmerDashboard = () => {
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -280,10 +280,10 @@ const FarmerDashboard = () => {
                     <FormItem>
                       <FormLabel>Price per kg (₹)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          min="0" 
-                          step="0.01" 
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
                           placeholder="e.g. 45"
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -293,7 +293,7 @@ const FarmerDashboard = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="quantity"
@@ -301,7 +301,7 @@ const FarmerDashboard = () => {
                     <FormItem>
                       <FormLabel>Quantity (kg)</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           type="number"
                           min="0"
                           placeholder="e.g. 1000"
@@ -314,7 +314,7 @@ const FarmerDashboard = () => {
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -329,7 +329,7 @@ const FarmerDashboard = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="harvestDate"
@@ -344,7 +344,7 @@ const FarmerDashboard = () => {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="location"
@@ -358,7 +358,7 @@ const FarmerDashboard = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="storageInfo"
@@ -372,7 +372,7 @@ const FarmerDashboard = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="description"
@@ -380,8 +380,8 @@ const FarmerDashboard = () => {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Additional details about your crop..." 
+                      <Textarea
+                        placeholder="Additional details about your crop..."
                         className="resize-none"
                         {...field}
                       />
@@ -390,16 +390,16 @@ const FarmerDashboard = () => {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setAddCropModalOpen(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   type="submit"
                   disabled={addCropMutation.isPending}
                 >

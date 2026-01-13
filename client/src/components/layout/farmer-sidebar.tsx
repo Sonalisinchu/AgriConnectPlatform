@@ -11,11 +11,14 @@ import {
   User,
   Home,
   Menu,
-  Sprout, // Changed from Plant to Sprout
-  X
+  Sprout,
+  X,
+  Send,
+  BookOpen, // Added for Crop Intelligence
+  ShoppingBag // Added for Marketplace
 } from "lucide-react";
 import { useState } from "react";
-import { 
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -32,11 +35,11 @@ export function FarmerSidebar({ className }: SidebarProps) {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-  
+
   const navItems = [
     {
       title: "Dashboard",
@@ -64,12 +67,31 @@ export function FarmerSidebar({ className }: SidebarProps) {
       href: "/farmer-dashboard#buyer-connections",
     },
     {
+      title: "Messages",
+      href: "/messages",
+    },
+    {
+      title: "Crop Intelligence",
+      icon: <BookOpen className="mr-3 h-5 w-5" />,
+      href: "/crop-intelligence",
+    },
+    {
+      title: "Marketplace",
+      icon: <ShoppingBag className="mr-3 h-5 w-5" />,
+      href: "/marketplace",
+    },
+    {
+      title: "Price Trends",
+      icon: <BarChart3 className="mr-3 h-5 w-5" />,
+      href: "/analytics",
+    },
+    {
       title: "My Profile",
       icon: <User className="mr-3 h-5 w-5" />,
       href: "/farmer-dashboard#profile",
     }
   ];
-  
+
   const renderNavItems = () => (
     <ul className="space-y-1">
       {navItems.map((item) => (
@@ -79,7 +101,7 @@ export function FarmerSidebar({ className }: SidebarProps) {
               className={cn(
                 "flex items-center px-4 py-3 text-neutral-700 hover:bg-neutral-100 rounded-lg mb-1",
                 location === item.href ||
-                (item.href !== "/farmer-dashboard" && location.includes(item.href))
+                  (item.href !== "/farmer-dashboard" && location.includes(item.href))
                   ? "bg-primary text-white hover:bg-primary-dark"
                   : ""
               )}
@@ -103,7 +125,7 @@ export function FarmerSidebar({ className }: SidebarProps) {
       </li>
     </ul>
   );
-  
+
   // Mobile menu
   const mobileMenu = (
     <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -122,7 +144,7 @@ export function FarmerSidebar({ className }: SidebarProps) {
           </SheetTitle>
           <p className="text-sm text-neutral-500">Farmer Dashboard</p>
         </SheetHeader>
-        
+
         <div className="p-4 border-b border-neutral-200">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
@@ -134,19 +156,19 @@ export function FarmerSidebar({ className }: SidebarProps) {
             </div>
           </div>
         </div>
-        
+
         <nav className="p-2">
           {renderNavItems()}
         </nav>
       </SheetContent>
     </Sheet>
   );
-  
+
   // Desktop sidebar
   return (
     <>
       {mobileMenu}
-      
+
       <div className={cn("bg-white shadow-md lg:w-64 lg:fixed lg:h-full hidden lg:block", className)}>
         <div className="p-4 border-b border-neutral-200">
           <h1 className="font-bold text-xl text-primary flex items-center">
@@ -154,7 +176,7 @@ export function FarmerSidebar({ className }: SidebarProps) {
           </h1>
           <p className="text-sm text-neutral-500">Farmer Dashboard</p>
         </div>
-        
+
         <div className="p-4 border-b border-neutral-200">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
@@ -166,7 +188,7 @@ export function FarmerSidebar({ className }: SidebarProps) {
             </div>
           </div>
         </div>
-        
+
         <nav className="p-2">
           {renderNavItems()}
         </nav>
