@@ -12,7 +12,7 @@ import PlantingCalendar from "@/components/dashboard/planting-calendar";
 import CropCard from "@/components/dashboard/crop-card";
 import CropDetailsModal from "@/components/dashboard/crop-details-modal";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 
 import {
   Dialog,
@@ -403,7 +403,14 @@ const FarmerDashboard = () => {
                   type="submit"
                   disabled={addCropMutation.isPending}
                 >
-                  {addCropMutation.isPending ? "Adding..." : "Add Crop"}
+                  {addCropMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    "Add Crop"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
