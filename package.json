@@ -15,7 +15,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
-    "@shared/schema": "workspace:*",
+    "@shared/schema": "file:./shared",
     "@hookform/resolvers": "^3.9.1",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
