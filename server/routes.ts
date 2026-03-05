@@ -13,8 +13,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API Routes
   // Crops
   app.get("/api/crops", async (req: Request, res: Response) => {
-    const crops = await storage.getAllCrops();
-    res.json(crops);
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const crops = await storage.getAllCrops();
+      const paginatedCrops = crops.slice(offset, offset + limit);
+      
+      res.json({
+        data: paginatedCrops,
+        total: crops.length,
+        limit,
+        offset
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to fetch crops" });
+    }
   });
 
   // AI Assistant Chat
@@ -23,12 +37,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const { message } = req.body;
-      if (!message) return res.status(400).json({ message: "Message is required" });
+      if (!message || typeof message !== "string") {
+        return res.status(400).json({ message: "Message is required and must be a string" });
+      }
 
-      const response = await getAIResponse(message);
+      if (message.trim().length === 0) {
+        return res.status(400).json({ message: "Message cannot be empty" });
+      }
+
+      const response = await getAIResponse(message.trim());
       res.json({ response });
     } catch (error: any) {
-      res.status(500).json({ message: "Failed to get AI response" });
+      console.error("[AI Chat Error]:", error);
+      res.status(500).json({ message: "Failed to get AI response. Please try again later." });
     }
   });
 
@@ -386,20 +407,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Chatbot
+  // AI Chatbot (Alias for /api/ai/chat for backward compatibility)
   app.post("/api/chat", async (req: Request, res: Response) => {
-    // This is a duplicate of /api/ai/chat, let's keep it simple or redirect
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+
     const { message } = req.body;
 
     if (!message || typeof message !== "string") {
-      return res.status(400).json({ message: "Invalid message" });
+      return res.status(400).json({ message: "Invalid message. Message must be a non-empty string." });
+    }
+
+    if (message.trim().length === 0) {
+      return res.status(400).json({ message: "Message cannot be empty" });
     }
 
     try {
-      const response = await getAIResponse(message);
+      const response = await getAIResponse(message.trim());
       res.json({ response });
     } catch (error: any) {
-      res.status(500).json({ message: "Failed to get AI response" });
+      console.error("[Chat Error]:", error);
+      res.status(500).json({ message: "Failed to process your message. Please try again later." });
     }
   });
 
